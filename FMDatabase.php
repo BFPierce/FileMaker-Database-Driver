@@ -8,8 +8,7 @@ require_once('FileMaker.php');
 
 // error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
-class FMDatabase 
-{
+class FMDatabase{
 	private $db_conn;
 	private $err_message;
 	
