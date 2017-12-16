@@ -1,2 +1,3 @@
-# FileMaker-Database-Driver
-Database Class for FileMaker Custom Web Publishing
+# FileMaker-Database-Wrapper
+
+- Simple base class that wraps basic functionality for FileMaker. Intended to be a base class and extended.
