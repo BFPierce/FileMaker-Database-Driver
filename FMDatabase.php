@@ -11,10 +11,10 @@ require_once('FileMaker.php');
 class FMDatabase 
 {
 	private $db_conn;
-    private $err_message;
-    
-    private $testURL = '[URL_HERE]';
-    private $productionURL = '[URL_HERE]'
+	private $err_message;
+	
+	private $testURL = '[URL_HERE]';
+	private $productionURL = '[URL_HERE]'
 
 	//------------------------------------------------------------------------------------------------------
 	//  Connect to FM Database
@@ -27,14 +27,14 @@ class FMDatabase
 		$this->db_conn->setProperty('database',$database);
 		$this->db_conn->setProperty('username',$user);
 		$this->db_conn->setProperty('password',$password);
-        
-        // Handle test and development environments
+		
+		// Handle test and development environments
 		if($_SERVER['SERVER_NAME'] == $testURL)
 			$this->db_conn->setProperty('hostspec', $testURL);
 		else
 			$this->db_conn->setProperty('hostspec', $productionURL);
-        
-        // Depending on your environment you might need this.
+		
+		// Depending on your environment you might need this.
 		//$this->db_conn->setProperty('curlOptions', array(CURLOPT_SSL_VERIFYPEER => false));		
 	}	
 	
@@ -65,7 +65,7 @@ class FMDatabase
 	//  Get all records from this layout matching the search criteria.
 	//------------------------------------------------------------------------------------------------------
 	protected function GetRecords($layout, $criteria = array()){
-        $layoutObject = $this->db_conn->getLayout($layout);
+		$layoutObject = $this->db_conn->getLayout($layout);
 		
 		$query = $this->db_conn->newFindCommand($layout);
 
@@ -142,13 +142,13 @@ class FMDatabase
 		}
 		
 		return true;
-    }
-    
-    //------------------------------------------------------------------------------------------------------
+	}
+	
+	//------------------------------------------------------------------------------------------------------
 	// Delete record by the record ID
 	//------------------------------------------------------------------------------------------------------
 	protected function DeleteRecord($layout, $record_id){        
-        $query = $this->db_conn->newFindCommand($layout); 
+		$query = $this->db_conn->newFindCommand($layout); 
 		$query->addFindCriterion('recordID',$record_id);
 		
 		$results = $query->execute();
