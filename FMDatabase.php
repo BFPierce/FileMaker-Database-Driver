@@ -1,154 +1,157 @@
 <?php
-//**********************************************************************************************************
-//*
-//*   	Class: FMDatabase - Base class for interactions with a FileMaker Database.
-//*
-//**********************************************************************************************************
+/**
+ * Class: FMDatabase
+ * + Base class for FileMaker database interactions.
+ * @author Jeffery White <jefferyawhite868@gmail.com>
+ * 
+ */
 require_once('FileMaker.php');
 
-// error_reporting(E_ERROR | E_WARNING | E_PARSE);
 
 class FMDatabase{
-	private $db_conn;
-	private $err_message;
+	private $dbConn;
+	private $errorMessage;
 	
 	private $testURL = '[URL_HERE]';
-	private $productionURL = '[URL_HERE]'
+	private $productionURL = '[URL_HERE]';
 
-	//------------------------------------------------------------------------------------------------------
-	//  Connect to FM Database
-	//------------------------------------------------------------------------------------------------------
+	/**
+	 * Create a new instance of the database connection.
+	 *
+	 * @param string $database - database name.
+	 * @param string $user - user name.
+	 * @param string $password - database password.
+	 */
 	public function __construct($database, $user, $password){		
-		$this->err_message = "";
+		$this->errorMessage = null;
 	
-		$this->db_conn = new FileMaker();
+		$this->dbConn = new FileMaker();
 		
-		$this->db_conn->setProperty('database',$database);
-		$this->db_conn->setProperty('username',$user);
-		$this->db_conn->setProperty('password',$password);
+		$this->dbConn->setProperty('database',$database);
+		$this->dbConn->setProperty('username',$user);
+		$this->dbConn->setProperty('password',$password);
 		
-		// Handle test and development environments
 		if($_SERVER['SERVER_NAME'] == $testURL)
-			$this->db_conn->setProperty('hostspec', $testURL);
+			$this->dbConn->setProperty('hostspec', $testURL);
 		else
-			$this->db_conn->setProperty('hostspec', $productionURL);
-		
-		// Depending on your environment you might need this.
-		//$this->db_conn->setProperty('curlOptions', array(CURLOPT_SSL_VERIFYPEER => false));		
+			$this->dbConn->setProperty('hostspec', $productionURL);	
 	}	
 	
-	//------------------------------------------------------------------------------------------------------
+	/**
+	 * Get the last FileMaker error message.
+	 *
+	 * @return string - last filemaker message recorded.
+	 */
 	protected function GetError(){
-		return $this->err_message;	
+		return $this->errorMessage;	
 	}
 	
-	//------------------------------------------------------------------------------------------------------
-	//  Add a record to a layout
-	//------------------------------------------------------------------------------------------------------
-	protected function AddRecord($layout, $record_data){		
-		$add_command = $this->db_conn->newAddCommand($layout,$record_data);
-		$result = $add_command->execute();
+	/**
+	 * Add record to the database.
+	 *
+	 * @param string $layout - Database layout name.
+	 * @param array $recordData - Key:value record data to add.
+	 * @return bool 
+	 */
+	protected function AddRecord($layout, $recordData){		
+		$addCommand = $this->dbConn->newAddCommand($layout, $recordData);
+		$result = $addCommand->execute();
 		
-		if(FileMaker::isError($result))
-		{
-			$this->err_message = $result->getMessage();
+		if(FileMaker::isError($result)){
+			$this->errorMessage = $result->getMessage();
 			return false;
 		}
-		else
-		{
+		else{
 			return true;
 		}
 	}
 			
-	//------------------------------------------------------------------------------------------------------
-	//  Get all records from this layout matching the search criteria.
-	//------------------------------------------------------------------------------------------------------
+	/**
+	 * Get records from the database matching the criteria.
+	 *
+	 * @param string $layout - Database layout name.
+	 * @param array $criteria - Key:value pairs matching database fields.
+	 * @return array - an array of record objects (key:value)
+	 */
 	protected function GetRecords($layout, $criteria = array()){
 		$layoutObject = $this->db_conn->getLayout($layout);
 		
-		$query = $this->db_conn->newFindCommand($layout);
+		$query = $this->dbConn->newFindCommand($layout);
 
 		foreach($criteria as $key => $value)
-		{
-			$query->addFindCriterion($key,$value);	
-		}
-
+			$query->addFindCriterion($key, $value);	
 		
 		$result = $query->execute();
 		
-		if(FileMaker::isError($result))
-		{
-			$this->err_message = $result->getMessage();
+		if(FileMaker::isError($result)){
+			$this->errorMessage = $result->getMessage();
 			return false;
 		}
-		else
-		{
+		else{
 			$data = array();
 			$fields = $layoutObject->getFields();
-			$records = $result->getRecords();
+			$records = $result->getRecords();s
 			
-			foreach($records as $record)
-			{
+			foreach($records as $record){
 				foreach($fields as $field)
-				{
-					$ob[$field->getName()] = $record->getField($field->getName());
-				}	
-				
-				$data[] = $ob;
-			}	
-			
+					$obj[$field->getName()] = $record->getField($field->getName());	
+
+				array_push($data[], $obj);
+			}				
 			return $data;
 		}	
 	}
 	
-	//------------------------------------------------------------------------------------------------------
-	//  Update records matching the search criteria.
-	//------------------------------------------------------------------------------------------------------
-	protected function UpdateMatching($layout, $criteria, $update_data){		
+	/**
+	 * Update records matching a provided criteria.
+	 *
+	 * @param string $layout - Database layout name.
+	 * @param array $criteria - Key:value matching database fields.
+	 * @param array $updateData - Key:value pairs to update for each found record.
+	 * @return bool
+	 */
+	protected function UpdateMatching($layout, $criteria, $updateData){		
 		$query = $this->db_conn->newFindCommand($layout);
 	
 		foreach($criteria as $key => $value)
-		{
-			$query->addFindCriterion($key,$value);	
-		}
+			$query->addFindCriterion($key, $value);	
+		
 		
 		$results = $query->execute();
 		
-		if(FileMaker::isError($results))
-		{
-			$this->err_message = $results->getMessage();
+		if(FileMaker::isError($results)){
+			$this->errorMessage = $results->getMessage();
 			return false;	
 		}
-		else
-		{
+		else{
 			$records = $results->getRecords();
 				
-			foreach($records as $record)
-			{
-				foreach($update_data as $key => $value)
-				{
-					$record->setField($key,$value);
-				}	
+			foreach($records as $record){
+				foreach($updateData as $key => $value)
+					$record->setField($key, $value);	
 				
 				$result = $record->commit();
 				
-				if(FileMaker::isError($result))
-				{
-					$this->err_message = $result->getMessage();
+				if(FileMaker::isError($result)){
+					$this->errorMessage = $result->getMessage();
 					return false;
 				}
 			}	
 		}
-		
+
 		return true;
 	}
 	
-	//------------------------------------------------------------------------------------------------------
-	// Delete record by the record ID
-	//------------------------------------------------------------------------------------------------------
-	protected function DeleteRecord($layout, $record_id){        
+	/**
+	 * Delete a record by its recordID.
+	 *
+	 * @param string $layout - Database layout name.
+	 * @param string $recordID - Record ID of the record to delete.
+	 * @return bool
+	 */
+	protected function DeleteRecord($layout, $recordID){        
 		$query = $this->db_conn->newFindCommand($layout); 
-		$query->addFindCriterion('recordID',$record_id);
+		$query->addFindCriterion('recordID',$recordID);
 		
 		$results = $query->execute();
 		$records = $results->getRecords();
@@ -156,13 +159,11 @@ class FMDatabase{
 		
 		$results = $record->delete();
 			
-		if(FileMaker::isError($results))
-		{
-			$this->err_message = $results->getMessage();
+		if(FileMaker::isError($results)){
+			$this->errorMessage = $results->getMessage();
 			return false;
 		}
-		else
-		{
+		else{
 			return true;	
 		}
 	}
