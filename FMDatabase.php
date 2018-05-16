@@ -60,8 +60,7 @@ class FMDatabase{
 		if(FileMaker::isError($result)){
 			$this->errorMessage = $result->getMessage();
 			return false;
-		}
-		else{
+		} else {
 			return true;
 		}
 	}
@@ -86,11 +85,10 @@ class FMDatabase{
 		if(FileMaker::isError($result)){
 			$this->errorMessage = $result->getMessage();
 			return false;
-		}
-		else{
+		} else {
 			$data = array();
 			$fields = $layoutObject->getFields();
-			$records = $result->getRecords();s
+			$records = $result->getRecords();
 			
 			foreach($records as $record){
 				foreach($fields as $field)
@@ -122,8 +120,7 @@ class FMDatabase{
 		if(FileMaker::isError($results)){
 			$this->errorMessage = $results->getMessage();
 			return false;	
-		}
-		else{
+		} else {
 			$records = $results->getRecords();
 				
 			foreach($records as $record){
@@ -162,8 +159,7 @@ class FMDatabase{
 		if(FileMaker::isError($results)){
 			$this->errorMessage = $results->getMessage();
 			return false;
-		}
-		else{
+		} else {
 			return true;	
 		}
 	}
